@@ -33,8 +33,6 @@ public class HttpLogger extends Logger {
     private String appName = "";
     // 发送日志
     private LogProducer producer;
-    // ip 地址
-    private String ip;
 
     public HttpLogger(String appName) throws Exception {
         this.appName = appName;
@@ -59,6 +57,9 @@ public class HttpLogger extends Logger {
             throw new Exception("invalid env LOGGER_ALIYUN_ACCESSKEYSECRET");
         }
         ProducerConfig producerConfig = new ProducerConfig();
+        producerConfig.setBatchSizeThresholdInBytes(1 * 1024 * 1024);
+        producerConfig.setLingerMs(3000);
+        producerConfig.setBatchCountThreshold(1000);
         producer = new LogProducer(producerConfig);
         producer.putProjectConfig(new ProjectConfig(projectName, endpoint, accessId, accessKey, ""));
     }
@@ -66,21 +67,32 @@ public class HttpLogger extends Logger {
     @Override
     public void Log(Level level, String... messages) {
         if (messages.length > 0) {
-            this.ip = Consts.getLocalAddress();
+            sendLog(level, messages);
+        }
+    }
+
+    private void sendLog(Level level, String... messages) {
+        // 失败重试3次
+        int retryNum = 2;
+        while (retryNum > 0) {
+            retryNum--;
             LogItem logItem = new LogItem();
-            logItem.PushBack("message", String.join(" ", messages));
-            logItem.PushBack("level", level.toString());
+            logItem.PushBack("content", Consts.GetApplicationLogStr(level, appName, messages, 5));
             List<LogItem> logItems = new ArrayList<LogItem>();
             logItems.add(logItem);
             try {
-                producer.send(this.projectName, this.logstoreName, this.appName, this.ip, logItems,
+                producer.send(this.projectName, this.logstoreName, this.appName, "", logItems,
                         new MyCallback(messages));
+                break;
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                sendLog(level, messages);
             } catch (ProducerException e) {
                 e.printStackTrace();
+                sendLog(level, messages);
             }
         }
+
     }
 
     @Override

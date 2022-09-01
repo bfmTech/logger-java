@@ -19,9 +19,9 @@ public class ConsoleLogger extends Logger {
     public void Log(Level level, String... messages) {
         if (messages.length > 0) {
             if (level == Level.Error) {
-                System.err.println(Consts.GetApplicationLogStr(level, appName, messages));
+                System.err.println(Consts.GetApplicationLogStr(level, appName, messages,4));
             } else {
-                System.out.println(Consts.GetApplicationLogStr(level, appName, messages));
+                System.out.println(Consts.GetApplicationLogStr(level, appName, messages,4));
             }
         }
     }

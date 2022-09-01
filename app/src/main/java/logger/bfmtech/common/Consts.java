@@ -18,29 +18,35 @@ import java.util.ArrayList;
 public class Consts {
    public final static String Separator = " \t ";
 
-   public static String GetApplicationLogStr(Level level, String appName, String[] messages) {
+   public static String GetApplicationLogStr(Level level, String appName, String[] messages, int stack) {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
       ApplicationLog applicationLog = new ApplicationLog(appName, level, sdf.format(new Date()),
-            String.join(Consts.Separator, messages), GetStack());
+            String.join(Consts.Separator, messages), GetStack(level == Level.Error ? -1 : stack));
       return applicationLog.toString();
    }
 
-   public static String GetStack() {
+   public static String GetStack(int stack) {
       StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-      if (stackTrace == null || stackTrace.length < 1) {
-         return "";
+      if (stack == -1) {
+         return stackTrace.toString();
+      } else {
+         if (stackTrace == null || stackTrace.length < 1) {
+            return "";
+         }
+         if (stack < stackTrace.length) {
+            return stackTrace[stack].toString();
+         }
+         return stackTrace[stackTrace.length - 1].toString();
       }
-      // for (int i = 0; i < stackTrace.length; i++) {
-      //    System.out.println(stackTrace[i].toString());
-      // }
-      if (stackTrace.length >= 5) {
-         return stackTrace[4].toString();
-      }
-      return stackTrace[stackTrace.length - 1].toString();
    }
 
    public static String GetData() {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      return sdf.format(new Date());
+   }
+
+   public static String GetDataTime() {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
       return sdf.format(new Date());
    }
 
@@ -59,19 +65,6 @@ public class Consts {
          perms.add(PosixFilePermission.OWNER_EXECUTE);
          FileAttribute<?> attr = PosixFilePermissions.asFileAttribute(perms);
          Files.createDirectories(file.toPath(), attr);
-      }
-   }
-
-   /**
-    * 创建文件的方法
-    * 
-    * @param path
-    * @throws Exception
-    */
-   public static void createFile(String path) throws Exception {
-      File file = new File(path);
-      if (!file.exists()) {
-         file.createNewFile();
       }
    }
 

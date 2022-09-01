@@ -45,7 +45,7 @@ public class FileLogger extends Logger {
     @Override
     public void Log(Level level, String... messages) {
         if (messages.length > 0) {
-            String msg = Consts.GetApplicationLogStr(level, appName, messages);
+            String msg = Consts.GetApplicationLogStr(level, appName, messages, 4);
             bufferSize += msg.length();
             queue.add(msg);
             if (queue.size() >= maxBufferLength || bufferSize >= maxBufferSize) {
@@ -56,6 +56,12 @@ public class FileLogger extends Logger {
 
     @Override
     public void Close() {
+        try {
+            if (scheduledExecutorService != null)
+                scheduledExecutorService.shutdown();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         flush();
     }
 

@@ -17,10 +17,11 @@ public class AccessLog {
    private String clientip;
    private String useragent;
    private String headers;
+   private String reqId;
 
    public AccessLog(String method, int status, long begintime, long endtime, String referer, String httphost,
          String interfac, String reqquery, String reqbody, String resbody, String clientip, String useragent,
-         String headers) {
+         String headers, String reqId) {
       this.method = method;
       this.status = status;
       this.begintime = begintime;
@@ -34,6 +35,7 @@ public class AccessLog {
       this.clientip = clientip;
       this.useragent = useragent;
       this.headers = headers;
+      this.reqId = reqId;
    }
 
    public String getMethod() {
@@ -140,10 +142,18 @@ public class AccessLog {
       this.headers = headers;
    }
 
+   public String getReqId() {
+      return reqId;
+   }
+
+   public void setReqId(String reqId) {
+      this.reqId = reqId;
+   }
+
    @Override
    public String toString() {
       return String.join(Consts.Separator, method, String.valueOf(status), String.valueOf(begintime),
             String.valueOf(endtime), referer, httphost, interfac, reqquery, reqbody, resbody, clientip, useragent,
-            headers);
+            headers, reqId);
    }
 }
