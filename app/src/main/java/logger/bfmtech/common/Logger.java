@@ -22,6 +22,10 @@ public abstract class Logger {
     public void Access(AccessLog accessLog) {
         Log(Level.Access, accessLog.toString());
     }
+    
+    public void SetStoringDays(int days ){
+
+    }
 
     public abstract void Log(Level level, String... messages);
 

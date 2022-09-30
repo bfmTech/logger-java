@@ -11,6 +11,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.util.TextUtils;
+
 import logger.bfmtech.common.Consts;
 import logger.bfmtech.common.Level;
 import logger.bfmtech.common.Logger;
@@ -19,6 +21,8 @@ import logger.bfmtech.common.Logger;
  * 把日志存入本地文件
  */
 public class FileLogger extends Logger {
+    // 默认日志保存的天数
+    private int days = 0;
     // filePath string // 文件保存路径
     private String appName;
     private int maxBufferLength; // 最大缓存日志条数
@@ -35,11 +39,22 @@ public class FileLogger extends Logger {
         maxBufferSize = 1 * 1024 * 1024;
         maxBufferLength = 100;
         bufferSize = 0;
-        filePath = String.format("%s/%s/%s/", "/var/winnerlogs", appName, ip.getHostName());
+        String filePathDefault = "/var/winnerlogs";
+        String javaAppData = System.getenv("NODE_APP_DATA");
+        if (!TextUtils.isEmpty(javaAppData)) {
+            filePathDefault = javaAppData;
+        }
+        filePath = String.format("%s/%s/%s/", filePathDefault, appName, ip.getHostName());
         Consts.createFileDirectory(filePath);
         queue = new LinkedList<String>();
         scheduledExecutorService = new ScheduledThreadPoolExecutor(10);
         createInterval();
+    }
+
+    @Override
+    public void SetStoringDays(int days) {
+        super.SetStoringDays(days);
+        this.days = days;
     }
 
     @Override
@@ -103,6 +118,20 @@ public class FileLogger extends Logger {
         File file = new File(String.format("%s/logger-%s.log", filePath, Consts.GetData()));
         if (!file.exists()) {
             file.createNewFile();
+            String javaAppData = System.getenv("NODE_APP_DATA");
+            if (days > 0 && !TextUtils.isEmpty(javaAppData)) {
+                File fileAll = new File(filePath);
+                String[] fileS = fileAll.list();
+                for (int i = 0; i < fileS.length; i++) {
+                    String fileName = fileS[i];
+                    if(fileName.startsWith("logger-") && fileName.endsWith(".log")){
+                        String data = fileName.replaceAll("logger-", "").replaceAll(".log", "");
+                        if ((System.currentTimeMillis() - Consts.getTimeStamp(data))/1000 > days * 24 * 60 * 60) {
+                            new File(fileAll, fileName).delete();
+                        }
+                    }
+                }
+            }
         }
         BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"));
         while (queue.iterator().hasNext()) {

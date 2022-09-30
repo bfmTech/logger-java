@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumSet;
@@ -49,6 +50,18 @@ public class Consts {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
       return sdf.format(new Date());
    }
+
+   public static long getTimeStamp(String times) {
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+      long timeStemp = 0;
+      try {
+          Date date = simpleDateFormat.parse(times);
+          timeStemp = date.getTime();
+      } catch (ParseException e) {
+          e.printStackTrace();
+      }
+      return timeStemp;
+  }
 
    /**
     * 创建文件目录的方法
